@@ -1,0 +1,11 @@
+streamlit
+openai
+faiss-cpu
+requests
+langchain_community
+langchain-openai
+unstructured
+PyPDF2
+bs4
+chromadb
+tiktoken
