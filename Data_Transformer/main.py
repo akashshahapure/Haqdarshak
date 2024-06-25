@@ -1,18 +1,11 @@
 #-------- IMPORTING REQUIRED LIBRARIES ---------
-import pandas as pd
-import numpy as np
-import xlsxwriter
-import matplotlib.pyplot as plt
-import tempfile
-import os
-import io
-import seaborn as sns
-import requiredFunc as rf
-import streamlit as st
+import pandas as pd, numpy as np, xlsxwriter, matplotlib.pyplot as plt, tempfile, os, io
+import seaborn as sns, requiredFunc as rf, streamlit as st
 from datetime import datetime as dt
 from openpyxl import load_workbook
 from notifypy import Notify
 from state import states
+notification = Notify()
 from googletrans import Translator
 import warnings
 warnings.filterwarnings('ignore')

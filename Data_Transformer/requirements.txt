@@ -3,5 +3,4 @@ numpy
 openpyxl
 seaborn
 notify-py
-googletrans==4.0.0rc1
-math
+googletrans
