@@ -30,6 +30,9 @@ if 'init_file_size' not in st.session_state:
 if 'exe_start' not in st.session_state:
     st.session_state.exe_start = None
 
+# Title of the tab
+st.set_page_config(page_title="Excel Data Transformer")
+
 # Title of web interface.
 st.title(":rainbow[Excel Data Transformer]")
 
