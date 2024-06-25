@@ -1,14 +1,13 @@
 #-------- IMPORTING REQUIRED LIBRARIES ---------
-import pandas as pd, numpy as np, xlsxwriter, matplotlib.pyplot as plt, tempfile, os, io
-import seaborn as sns, requiredFunc as rf, streamlit as st
+import pandas as pd, io, requiredFunc as rf, streamlit as st, xlsxwriter
 from datetime import datetime as dt
-from openpyxl import load_workbook
 from notifypy import Notify
-from state import states
 notification = Notify()
-from googletrans import Translator
 import warnings
 warnings.filterwarnings('ignore')
+
+notification = Notify()
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 print("\n*****Required libraries imported from main*****")

@@ -488,3 +488,15 @@ def repeatMobile(df):
         repeat_mobile.loc[len(repeat_mobile)] = ['Grand Total','',repeat_mobile['Citizen GUID'].sum()]
     repeat_mobile.rename(columns={"Citizen GUID":"Total Citizens"}, inplace=True)
     return repeat_mobile
+
+# Defining a function to log the execution process
+def logging(category,uname,uemail,init_file_size, exe_start, exe_end, data, duplicateData, rejectedDF, fn):
+    
+    log = [category, uname, uemail, init_file_size, exe_start.strftime("%d/%m/%Y %H:%M:%S"),
+           exe_end.strftime("%d/%m/%Y %H:%M:%S"), int(round((exe_end-exe_start).total_seconds(),0)),
+           fn.split('.')[0],data.shape[0],duplicateData.shape[0],rejectedDF.shape[0]]
+
+    lwb = load_workbook(r'.\Logs Remove Duplicate for Dashboard.xlsx') # Loading the workbook
+    lws = lwb.worksheets[0] # Setting the worksheet
+    lws.append(log) # Appending the log row
+    lwb.save(r'.\Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
