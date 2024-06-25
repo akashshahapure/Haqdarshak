@@ -3,5 +3,5 @@ numpy
 openpyxl
 seaborn
 notify-py
-googletrans
+googletrans==4.0.0rc1
 xlsxwriter
