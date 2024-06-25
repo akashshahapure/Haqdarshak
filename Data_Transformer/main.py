@@ -34,7 +34,6 @@ if 'rejectedDF' not in st.session_state:
     st.session_state.rejectedDF = None
 if 'project_name' not in st.session_state:
     st.session_state.project_name = None
-if 
 if 'transform_clicked' not in st.session_state:
     st.session_state.transform_clicked = False
 
