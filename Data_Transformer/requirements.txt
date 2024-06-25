@@ -4,3 +4,4 @@ openpyxl
 seaborn
 notify-py
 googletrans
+xlsxwriter
