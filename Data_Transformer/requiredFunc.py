@@ -499,4 +499,4 @@ def logging(category,uname,uemail,init_file_size, exe_start, exe_end, data, dupl
     lwb = load_workbook('.\Logs Remove Duplicate for Dashboard.xlsx') # Loading the workbook
     lws = lwb.worksheets[0] # Setting the worksheet
     lws.append(log) # Appending the log row
-    lwb.save('.\Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
+    lwb.save('.\Data_Transformer\Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
