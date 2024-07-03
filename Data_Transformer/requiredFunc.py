@@ -44,8 +44,6 @@ def Trans(x):
         else:
             return x.title()
 
-    
-
 # Defining a function for data cleaning
 def cleaner(df):
     data0 = df
@@ -158,12 +156,12 @@ def eGov_DFL_dup(data0):
         data0['Parent Scheme'][i] = data0['Scheme/Doc'][i]
         
     # Adding column with name 'parent_duplicate' by concatenation
-    #data0['duplicate'] = data0['Scheme/Doc'] + data0['Citizen Name'] + data0['Mobile'] # Concatenation using scheme name for E-Gov data
+    data0['duplicate'] = data0['Scheme/Doc'] + data0['Citizen Name'] + data0['Mobile'] # Concatenation using scheme name for E-Gov data
     data0['parent_duplicate'] = data0['Parent Scheme'] + data0['Citizen Name'] + data0['Mobile'] # Concatenation using Parent scheme name for E-Gov data
     dfl['duplicate'] = dfl['Scheme/Doc'] + dfl['Citizen Name'] + dfl['Mobile'] # Concatenation using scheme name for DFL data
 
     # Converting duplicate column in lower case because python considers ASCII values of each character while checking for duplicates.
-    #data0['duplicate'] = data0['duplicate'].apply(lambda x: x.lower())
+    data0['duplicate'] = data0['duplicate'].apply(lambda x: x.lower())
     data0['parent_duplicate'] = data0['parent_duplicate'].apply(lambda x: x.lower())
     dfl['duplicate'] = dfl['duplicate'].apply(lambda x: x.lower())
     
@@ -171,12 +169,17 @@ def eGov_DFL_dup(data0):
     #dfl.Mobile = dfl.Mobile.apply(lambda x : int(x.split('.')[0])) # Converting "Mobile" column to interger data type
 
     # Checking number of all duplicate records
-    #duplicateData = data0[data0.duplicated(['duplicate'],keep=False)].sort_values('duplicate') # Storing duplicate data based on scheme name for E-Gov data
+    duplicateData = data0[data0.duplicated(['duplicate'],keep=False)].sort_values('duplicate') # Storing duplicate data based on scheme name for E-Gov data
     parentDuplicateData = data0[data0.duplicated(['parent_duplicate'],keep=False)].sort_values('parent_duplicate') # Storing duplicate data based on Parent scheme name for E-Gov data
     dflDuplicates = dfl[dfl.duplicated(['duplicate'],keep=False)].sort_values('duplicate') #  # Storing duplicate data based on scheme name for DFL data
     
-    duplicateData = pd.concat([parentDuplicateData,dflDuplicates], ignore_index=True)
+    # Merging schemes duplicate data with DFL duplicate records
+    duplicateData = pd.concat([duplicateData,dflDuplicates], ignore_index=True)
     duplicateData.reset_index(inplace=True, drop = True)
+
+    # Merging schemes parent duplicate data with DFL duplicate records
+    parentDuplicateData = pd.concat([parentDuplicateData,dflDuplicates], ignore_index=True)
+    parentDuplicateData.reset_index(inplace=True, drop = True)
 
     # Keeping uniques excluding duplicates
     #df = data0.drop(index = data0[data0.duplicated(['duplicate'], keep='last')].index) # Keep unique data based on scheme name duplicate column for E-Gov
@@ -192,7 +195,7 @@ def eGov_DFL_dup(data0):
     except IndexError:
         print(df.shape)
     """
-    return df, duplicateData, og_DF
+    return df, duplicateData, parentDuplicateData, og_DF
 
 # Adding a column to map no. of cases against citizen GUID
 def casesCount(df):
@@ -500,3 +503,43 @@ def logging(category,uname,uemail,init_file_size, exe_start, exe_end, data, dupl
     lws = lwb.worksheets[0] # Setting the worksheet
     lws.append(log) # Appending the log row
     lwb.save('Data_Transformer/Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
+
+# Defining a function for HD payment calculation which will take cases report and rate card as input and return final cases report with hd payment column
+def hdPayment(data0, rate_card):
+    price = {'index':[], 'Scheme/Doc GUID':[], 'open_price':[], 'Docket submitted price':[], 'scheme_document_received price':[]} # Declaring a blank dictionary for storing price.
+    
+    for SID, di in zip(data0['Scheme/Doc GUID'], data0['Scheme/Doc GUID'].index): # Getting Scheme GUID and index number from schemes data.
+        price['Scheme/Doc GUID'].append(SID) # Storing Scheme GUID from schemes data.
+        price['index'].append(di) # Storing index number from schemes data.
+        rate_sch = rate_card[rate_card.schemes_Guid == SID].sort_values('created_on') # Storing scheme GUID based filtered data from rate_card.
+        rate_sch['created_on'] = rate_sch.created_on.apply(lambda x: x.strftime("%d-%m-%Y"))
+        for d in rate_sch:
+            date_sch = rate_card[rate_card.created_on == d].sort_values('created_on')
+            if date_sch.shape[0] > 1:
+                rate_sch.drop(index = date_sch.index.min(), inplace=True)
+        rate_sch.created_on = pd.to_datetime(rate_sch.created_on, format='mixed', errors='ignore')
+        if rate_sch.shape[0] > 1: # Checking if filtered data has more than 1 results.
+            for i in rate_sch.index: # Iterating through filtered results.
+                if data0.Createdon.loc[di] >= rate_sch.created_on.iloc[-1]: # Checking if cases created date is earlier than the rate card defined date.
+                    price['open_price'].append(rate_sch.open_price.iloc[-1]) # Storing open price from rate card to "price" dictionary.
+                    price['Docket submitted price'].append(rate_sch['Docket submitted price'].iloc[-1]) # Storing DS price from rate card to "price" dictionary.
+                    price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].iloc[-1]) # Storing BR price from rate card to "price" dictionary.
+                    print('for if = {0} >= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.iloc[-1]))
+                    break
+                elif data0.Createdon.loc[di] <= rate_sch.created_on.loc[i]: # Checking if cases created date is earlier than the rate card defined date.
+                    price['open_price'].append(rate_sch.open_price.loc[i]) # Storing open price from rate card to "price" dictionary.
+                    price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[i]) # Storing DS price from rate card to "price" dictionary.
+                    price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[i]) # Storing BR price from rate card to "price" dictionary.
+                    print('for elif = {0} <= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.loc[i]))
+                    break
+        else: # This will execute if filtered data has only single result.
+            price['open_price'].append(rate_sch.open_price.loc[rate_sch.index[0]]) # Storing open price from rate card to "price" dictionary.
+            price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[rate_sch.index[0]]) # Storing DS price from rate card to "price" dictionary.
+            price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[rate_sch.index[0]]) # Storing BR price from rate card to "price" dictionary.
+            print('if-else')
+    
+    price = pd.DataFrame(price) # Converting price dictionary to pandas dataframe.
+    data0 = data0.merge(price.drop(columns=['Scheme/Doc GUID']), left_on=data0.index, right_on='index', how='left') # Merging "price" datafram with "cases report".
+    data0.drop(columns=['index'], inplace=True) # Removing index column
+    data0['HD_Payment'] = data0.open_price + data0['Docket submitted price'] + data0['scheme_document_received price'] # Adding column for HD payment.
+    return data0

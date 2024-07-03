@@ -17,6 +17,8 @@ if 'unique_data' not in st.session_state:
     st.session_state.unique_data = None
 if 'duplicateData' not in st.session_state:
     st.session_state.duplicateData = None
+if 'parentDuplicateData' not in st.session_state:
+    st.session_state.parentDuplicateData = None
 if 'og_DF' not in st.session_state:
     st.session_state.og_DF = None
 if 'rejectedDF' not in st.session_state:
@@ -48,10 +50,14 @@ if uemail is None:
     st.stop()
 
 # Getting project file from user.
-project = st.sidebar.file_uploader("Choose Excel or CSV file:*", type=['xlsx','xls','xlsb','csv'])
+st.sidebar.image('.\DATA_TRANSFORMER\info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
+project = st.sidebar.file_uploader("Choose Excel or CSV cases report from info portal:*", type=['xlsx','xls','xlsb','csv'])
 
 # Getting "Orgwise Scheme Applied" file from user.
 orgwise = st.sidebar.file_uploader("Choose latest 'Orgwise Scheme Applied' file from Metabase. Data period should be from begining to till date:*", type=['xlsx','xls','xlsb','csv'])
+
+# Getting "Rate Card" file from user.
+rate_card = st.sidebar.file_uploader("Choose 'Rate Card' file from Metabase.*", type=['xlsx','xls','xlsb','csv'])
 
 def transform_data():
     st.session_state.exe_start = dt.now() # Recording execution start time.
@@ -69,12 +75,19 @@ def transform_data():
     if orgwise is not None:
         schemeDetails, fs = rf.csvORexcel(orgwise, orgwise.name)  # Reading uploaded file and storing as dataframe.
         data0 = rf.orgwiseMerge(data0, schemeDetails)  # Merging project data with orgwise scheme applied data.
-        unique_data, duplicateData, og_DF = rf.eGov_DFL_dup(data0)  # Separating DFL and E-Gov duplicate and unique data.
-        st.session_state.unique_data = unique_data
-        st.session_state.duplicateData = duplicateData
-        st.session_state.og_DF = og_DF
     else:
         st.warning("Please choose Orgwise_Scheme_Applied file to proceed further.", icon="⚠️")
+        st.stop()
+
+    if rate_card is not None:
+        data0 = rf.hdPayment(data0, rate_card) # Adding prices from rate card and calculate hd payment.
+        unique_data, duplicateData, parentDuplicateData, og_DF = rf.eGov_DFL_dup(data0)  # Separating DFL and E-Gov duplicate and unique data.
+        st.session_state.unique_data = unique_data
+        st.session_state.duplicateData = duplicateData
+        st.session_state.parentDuplicateData = parentDuplicateData
+        st.session_state.og_DF = og_DF
+    else:
+        st.warning("Please choose rate_card file to proceed further.", icon="⚠️")
         st.stop()
 
 if st.sidebar.button('Transform'):
@@ -124,8 +137,12 @@ with cols[0]:
                 top_bottom_hd.to_excel(uwriter, sheet_name='HD Performance', index=False)
                 Scheme_Categorisation.to_excel(uwriter, sheet_name='Scheme Categorisation', index=False)
                 gen_Bif.to_excel(uwriter, sheet_name='Gender Bifurcation', index=False)
-                st.session_state.duplicateData.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
-                st.session_state.rejectedDF.to_excel(uwriter, sheet_name='Rejected Data', index=False)
+                if st.session_state.duplicateData.shape[0] > 0:
+                    st.session_state.duplicateData.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
+                if st.session_state.parentDuplicateData.shape[0] > 0:
+                    st.session_state.parentDuplicateData.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
+                if st.session_state.rejectedDF.shape[0] > 0:
+                    st.session_state.rejectedDF.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
                 exe_end = dt.now() # Recording execution end time
                 uwriter.close()
 
@@ -169,8 +186,12 @@ with cols[1]:
                 ogtop_bottom_hd.to_excel(awriter, sheet_name='HD Performance', index=False)
                 ogScheme_Categorisation.to_excel(awriter, sheet_name='Scheme Categorisation', index=False)
                 ogGen_Bif.to_excel(awriter, sheet_name='Gender Bifurcation', index=False)
-                st.session_state.duplicateData.to_excel(awriter, sheet_name='Duplicate Data', index=False)
-                st.session_state.rejectedDF.to_excel(awriter, sheet_name='Rejected Data', index=False)
+                if st.session_state.duplicateData.shape[0] > 0:
+                    st.session_state.duplicateData.to_excel(awriter, sheet_name='Duplicate Data', index=False)
+                if st.session_state.parentDuplicateData.shape[0] > 0:
+                    st.session_state.parentDuplicateData.to_excel(awriter, sheet_name='Duplicate Data', index=False)
+                if st.session_state.rejectedDF.shape[0] > 0:
+                    st.session_state.rejectedDF.to_excel(awriter, sheet_name='Duplicate Data', index=False)
                 exe_end = dt.now()
                 awriter.close()
             
