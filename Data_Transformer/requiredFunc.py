@@ -499,44 +499,56 @@ def logging(category,uname,uemail,init_file_size, exe_start, exe_end, data, dupl
            exe_end.strftime("%d/%m/%Y %H:%M:%S"), int(round((exe_end-exe_start).total_seconds(),0)),
            fn.split('.')[0],data.shape[0],duplicateData.shape[0],rejectedDF.shape[0]]
 
-    lwb = load_workbook('Data_Transformer/Logs Remove Duplicate for Dashboard.xlsx') # Loading the workbook
+    try: # For GitHub
+        lwb = load_workbook('./Data_Transformer/Logs Remove Duplicate for Dashboard.xlsx') # Loading the workbook
+    except: # For local execution
+        lwb = load_workbook('Logs Remove Duplicate for Dashboard.xlsx') # Loading the workbook
     lws = lwb.worksheets[0] # Setting the worksheet
     lws.append(log) # Appending the log row
-    lwb.save('Data_Transformer/Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
+    try: # For GitHub
+        lwb.save('./Data_Transformer/Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
+    except: # For local execution
+        lwb.save('Logs Remove Duplicate for Dashboard.xlsx') # Saving the logged data
 
 # Defining a function for HD payment calculation which will take cases report and rate card as input and return final cases report with hd payment column
-def hdPayment(data0, rate_card):
-    price = {'index':[], 'Scheme/Doc GUID':[], 'open_price':[], 'Docket submitted price':[], 'scheme_document_received price':[]} # Declaring a blank dictionary for storing price.
+def hdPayment(data0, rate_card, PID):
+    rate_card = rate_card[rate_card['Org_PID'] == PID].sort_values('created_on') # Filtering data based on project ID.
+    
+    price = {'index':[], 'Scheme/Doc GUID':[], 'open_price':[], 'Docket submitted price':[], 'scheme_document_received price':[]} # Declaring a blank dictionary for storing prices.
     
     for SID, di in zip(data0['Scheme/Doc GUID'], data0['Scheme/Doc GUID'].index): # Getting Scheme GUID and index number from schemes data.
         price['Scheme/Doc GUID'].append(SID) # Storing Scheme GUID from schemes data.
         price['index'].append(di) # Storing index number from schemes data.
         rate_sch = rate_card[rate_card.schemes_Guid == SID].sort_values('created_on') # Storing scheme GUID based filtered data from rate_card.
-        rate_sch['created_on'] = rate_sch.created_on.apply(lambda x: x.strftime("%d-%m-%Y"))
+        rate_sch['created_on'] = rate_sch.created_on.apply(lambda x: x.strftime("%d-%m-%Y")) # COnverting date format to DD-MM-YYYY
+        
+        # Finding duplicate records based on created_on date and droping the older record 
         for d in rate_sch:
             date_sch = rate_card[rate_card.created_on == d].sort_values('created_on')
             if date_sch.shape[0] > 1:
                 rate_sch.drop(index = date_sch.index.min(), inplace=True)
+
         rate_sch.created_on = pd.to_datetime(rate_sch.created_on, format='mixed', errors='ignore')
+        
         if rate_sch.shape[0] > 1: # Checking if filtered data has more than 1 results.
             for i in rate_sch.index: # Iterating through filtered results.
                 if data0.Createdon.loc[di] >= rate_sch.created_on.iloc[-1]: # Checking if cases created date is earlier than the rate card defined date.
                     price['open_price'].append(rate_sch.open_price.iloc[-1]) # Storing open price from rate card to "price" dictionary.
                     price['Docket submitted price'].append(rate_sch['Docket submitted price'].iloc[-1]) # Storing DS price from rate card to "price" dictionary.
                     price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].iloc[-1]) # Storing BR price from rate card to "price" dictionary.
-                    print('for if = {0} >= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.iloc[-1]))
+                    #print('for if = {0} >= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.iloc[-1])) # For testing purpose
                     break
                 elif data0.Createdon.loc[di] <= rate_sch.created_on.loc[i]: # Checking if cases created date is earlier than the rate card defined date.
                     price['open_price'].append(rate_sch.open_price.loc[i]) # Storing open price from rate card to "price" dictionary.
                     price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[i]) # Storing DS price from rate card to "price" dictionary.
                     price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[i]) # Storing BR price from rate card to "price" dictionary.
-                    print('for elif = {0} <= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.loc[i]))
+                    #print('for elif = {0} <= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.loc[i])) # For testing purpose
                     break
         else: # This will execute if filtered data has only single result.
             price['open_price'].append(rate_sch.open_price.loc[rate_sch.index[0]]) # Storing open price from rate card to "price" dictionary.
             price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[rate_sch.index[0]]) # Storing DS price from rate card to "price" dictionary.
             price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[rate_sch.index[0]]) # Storing BR price from rate card to "price" dictionary.
-            print('if-else')
+            #print('if-else') # For testing purpose
     
     price = pd.DataFrame(price) # Converting price dictionary to pandas dataframe.
     data0 = data0.merge(price.drop(columns=['Scheme/Doc GUID']), left_on=data0.index, right_on='index', how='left') # Merging "price" datafram with "cases report".

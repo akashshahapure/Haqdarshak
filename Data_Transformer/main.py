@@ -39,56 +39,67 @@ st.set_page_config(page_title="Excel Data Transformer")
 st.title(":rainbow[Excel Data Transformer]")
 
 # Getting user name and email ID
-uname = st.sidebar.text_input('Name : ', placeholder='Enter your name')
+uname = st.sidebar.text_input('Name : :red[*]', placeholder='Enter your name')
 if uname is None:
     st.warning('Please enter your name!', icon="⚠️")
     st.stop()
 
-uemail = st.sidebar.text_input('Email : ', placeholder='Enter your Haqdarshak email ID')
+uemail = st.sidebar.text_input('Email : :red[*]', placeholder='Enter your Haqdarshak email ID')
 if uemail is None:
     st.warning('Please enter your Haqdarshak email ID!', icon="⚠️")
     st.stop()
 
+# Getting project ID from user
+PID = st.sidebar.text_input("PID : :red[*]", placeholder='Enter Project ID / PID')
+if PID is None:
+    st.warning('Please enter project ID!', icon="⚠️")
+    st.stop()
+
 # Getting project file from user.
-st.sidebar.image('DATA_TRANSFORMER/info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
-project = st.sidebar.file_uploader("Choose Excel or CSV cases report from info portal:*", type=['xlsx','xls','xlsb','csv'])
+try: # For GitHub
+    st.sidebar.image('./Data_Transformer/info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
+except: # For local execution
+    st.sidebar.image('info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
+project = st.sidebar.file_uploader("Choose Excel or CSV cases report from info portal: :red[*]", type=['xlsx','xls','xlsb','csv'])
 
 # Getting "Orgwise Scheme Applied" file from user.
-orgwise = st.sidebar.file_uploader("Choose latest 'Orgwise Scheme Applied' file from Metabase. Data period should be from begining to till date:*", type=['xlsx','xls','xlsb','csv'])
+orgwise = st.sidebar.file_uploader("Choose latest 'Orgwise Scheme Applied' file from Metabase. Data period should be from begining to till date: :red[*]", type=['xlsx','xls','xlsb','csv'])
 
 # Getting "Rate Card" file from user.
-rate_card = st.sidebar.file_uploader("Choose 'Rate Card' file from Metabase.*", type=['xlsx','xls','xlsb','csv'])
+rateCard = st.sidebar.file_uploader("Choose 'Rate Card' file from Metabase. :red[*]", type=['xlsx','xls','xlsb','csv'])
 
 def transform_data():
-    st.session_state.exe_start = dt.now() # Recording execution start time.
-    
-    if project is not None:
-        data0, init_file_size = rf.csvORexcel(project, project.name)  # Reading uploaded file and storing as dataframe.
-        data0, rejectedDF = rf.cleaner(data0)  # Cleaning the data.
-        st.session_state.rejectedDF = rejectedDF
-        st.session_state.project_name = project.name
-        st.session_state.init_file_size = init_file_size
-    else:
-        st.warning("Project file is compulsory!", icon="⚠️")
-        st.stop()
+    with st.spinner('Transforming...'):
+        st.session_state.exe_start = dt.now() # Recording execution start time.
+        
+        if project is not None:
+            data0, init_file_size = rf.csvORexcel(project, project.name) # Reading uploaded file and storing as dataframe.
+            data0, rejectedDF = rf.cleaner(data0)  # Cleaning the data.
+            st.session_state.rejectedDF = rejectedDF
+            st.session_state.project_name = project.name
+            st.session_state.init_file_size = init_file_size
+        else:
+            st.warning("Project file is compulsory!", icon="⚠️")
+            st.stop()
 
-    if orgwise is not None:
-        schemeDetails, fs = rf.csvORexcel(orgwise, orgwise.name)  # Reading uploaded file and storing as dataframe.
-        data0 = rf.orgwiseMerge(data0, schemeDetails)  # Merging project data with orgwise scheme applied data.
-    else:
-        st.warning("Please choose Orgwise_Scheme_Applied file to proceed further.", icon="⚠️")
-        st.stop()
+        if orgwise is not None:
+            schemeDetails, fs = rf.csvORexcel(orgwise, orgwise.name)  # Reading uploaded file and storing as dataframe.
+            data0 = rf.orgwiseMerge(data0, schemeDetails)  # Merging project data with orgwise scheme applied data.
+        else:
+            st.warning("Please choose Orgwise_Scheme_Applied file to proceed further.", icon="⚠️")
+            st.stop()
 
-    if rate_card is not None:
-        data0 = rf.hdPayment(data0, rate_card) # Adding prices from rate card and calculate hd payment.
-        unique_data, duplicateData, parentDuplicateData, og_DF = rf.eGov_DFL_dup(data0)  # Separating DFL and E-Gov duplicate and unique data.
-        st.session_state.unique_data = unique_data
-        st.session_state.duplicateData = duplicateData
-        st.session_state.parentDuplicateData = parentDuplicateData
-        st.session_state.og_DF = og_DF
-    else:
-        st.warning("Please choose rate_card file to proceed further.", icon="⚠️")
-        st.stop()
+        if rateCard is not None:
+            rate_card, fs = rf.csvORexcel(rateCard, rateCard.name) # Reading uploaded file and storing as dataframe.
+            data0 = rf.hdPayment(data0, rate_card, PID) # Adding prices from rate card and calculate HD payment.
+            unique_data, duplicateData, parentDuplicateData, og_DF = rf.eGov_DFL_dup(data0)  # Separating DFL and E-Gov duplicate and unique data.
+            st.session_state.unique_data = unique_data
+            st.session_state.duplicateData = duplicateData
+            st.session_state.parentDuplicateData = parentDuplicateData
+            st.session_state.og_DF = og_DF
+        else:
+            st.warning("Please choose rate_card file to proceed further.", icon="⚠️")
+            st.stop()
 
 if st.sidebar.button('Transform'):
     st.session_state.transform_clicked = True
