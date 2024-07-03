@@ -50,7 +50,7 @@ if uemail is None:
     st.stop()
 
 # Getting project file from user.
-st.sidebar.image('.\DATA_TRANSFORMER\info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
+st.sidebar.image('DATA_TRANSFORMER/info portal required columns - cases report.jpg', caption="Required columns while downloading cases report from info server", use_column_width='always')
 project = st.sidebar.file_uploader("Choose Excel or CSV cases report from info portal:*", type=['xlsx','xls','xlsb','csv'])
 
 # Getting "Orgwise Scheme Applied" file from user.
