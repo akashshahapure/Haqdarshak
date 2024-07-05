@@ -102,12 +102,15 @@ def cleaner(df):
     return data0, rejectedDF
 
 # Merging project data with orgwise schemes data
-def orgwiseMerge(projectDF, orgwise):
+def orgwiseMerge(projectDF, orgwise, PID):
     data0 = projectDF
     schemeDetails = orgwise
 
     # Removing blank rows from "Parent Scheme GUID" column.
     schemeDetails = schemeDetails[~schemeDetails['Parent Scheme GUID'].isna()]
+
+    # Filtering data "Project ID" basis
+    schemeDetails = schemeDetails[schemeDetails['Project Id'] == PID]
 
     # Removing colomuns except 'Scheme Id','Scheme type','Benefit Value' to merge with main dataframe
     for s in schemeDetails.columns:
@@ -115,7 +118,7 @@ def orgwiseMerge(projectDF, orgwise):
             schemeDetails.drop(columns=s, inplace=True)
 
     # Merging scheme details with main dataframe to get data of Scheme type & Benefit Value.
-    data0 = data0.merge(schemeDetails.drop_duplicates(subset=['Scheme Id']), left_on='Scheme/Doc GUID', right_on="Scheme Id", how='left')
+    data0 = data0.merge(schemeDetails.drop_duplicates(subset=['Scheme Id'], keep='last'), left_on='Scheme/Doc GUID', right_on="Scheme Id", how='left')
 
     # Removing non required column "Scheme ID"
     data0.drop(columns = 'Scheme Id', inplace=True)

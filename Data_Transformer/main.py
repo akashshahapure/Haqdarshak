@@ -83,7 +83,7 @@ def transform_data():
             st.stop()
 
         if orgwise is not None:
-            schemeDetails, fs = rf.csvORexcel(orgwise, orgwise.name)  # Reading uploaded file and storing as dataframe.
+            schemeDetails, fs = rf.csvORexcel(orgwise, orgwise.name, PID)  # Reading uploaded file and storing as dataframe.
             data0 = rf.orgwiseMerge(data0, schemeDetails)  # Merging project data with orgwise scheme applied data.
         else:
             st.warning("Please choose Orgwise_Scheme_Applied file to proceed further.", icon="⚠️")
