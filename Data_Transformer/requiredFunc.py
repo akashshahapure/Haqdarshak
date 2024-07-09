@@ -443,11 +443,13 @@ def hdAchv(df):
     step2 = pd.DataFrame(step.groupby(by = 'HD ID')['Case Id'].count()).reset_index().rename(columns={'Case Id' : 'Total Applications'})
     
     step3 = step.groupby('HD ID')['Benefit Value'].sum().reset_index()
+
+    step4 = pd.pivot_table(data=step, index = ['HD ID'], values='HD_Payment', aggfunc='sum').reset_index().rename(columns = {'HD_Payment' : 'Total Payment'}) # Summing up HD payment
     
-    top_bottom_hd = step1.merge(step2, on = 'HD ID', how='left').merge(step3, on = 'HD ID', how='left')
+    top_bottom_hd = step1.merge(step2, on = 'HD ID', how='left').merge(step3, on = 'HD ID', how='left').merge(step4, on = 'HD ID', how='left')
     top_bottom_hd.rename(columns={'Benefit Value':'Benefit Value Delivered'}, inplace=True)
     top_bottom_hd.loc[len(top_bottom_hd)] = ['Grand Total', '', top_bottom_hd['Total unique schemes'].sum(),
-                                            top_bottom_hd['Total Applications'].sum(), top_bottom_hd['Benefit Value Delivered'].sum()]
+                                            top_bottom_hd['Total Applications'].sum(), top_bottom_hd['Benefit Value Delivered'].sum(), top_bottom_hd['Total Payment'].sum()]
     
     return top_bottom_hd
 
