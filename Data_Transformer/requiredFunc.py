@@ -2,7 +2,6 @@
 import pandas as pd, numpy as np, xlsxwriter, time, matplotlib.pyplot as plt, math
 from datetime import datetime as dt
 from openpyxl import load_workbook
-from notifypy import Notify
 from state import states
 from googletrans import Translator
 print("\n*****Required libraries imported from requiredFunc*****")

@@ -1,12 +1,8 @@
 #-------- IMPORTING REQUIRED LIBRARIES ---------
 import pandas as pd, xlsxwriter, io, requiredFunc as rf, streamlit as st
 from datetime import datetime as dt
-from notifypy import Notify
-notification = Notify()
 import warnings
 warnings.filterwarnings('ignore')
-
-notification = Notify()
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
@@ -104,7 +100,7 @@ def transform_data():
 if st.sidebar.button('Transform'):
     st.session_state.transform_clicked = True
     transform_data()
-    st.experimental_rerun()
+    st.rerun()
 
 # Showing project name
 if st.session_state.project_name:
@@ -164,7 +160,7 @@ with cols[0]:
             if st.sidebar.download_button(label='Download Unique Data Insights',
                                           data=uniqueBuffer, file_name='unique_' + (st.session_state.project_name).split('.')[0] + '.xlsx',
                                           mime="application/vnd.ms-excel"):
-                st.experimental_rerun()
+                st.rerun()
                 #st.stop()
 
 with cols[1]:
@@ -215,4 +211,4 @@ with cols[1]:
                                           data=allBuffer, file_name='All_' + (st.session_state.project_name).split('.')[0] + '.xlsx',
                                           mime="application/vnd.ms-excel"):
                 #st.stop()
-                st.experimental_rerun()
+                st.rerun()
