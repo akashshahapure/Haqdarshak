@@ -157,7 +157,7 @@ def eGov_DFL_dup(data0):
     for i in data0[data0['Parent Scheme'].isna()].index:
         data0['Parent Scheme'][i] = data0['Scheme/Doc'][i]
         
-    # Adding column with name 'parent_duplicate' by concatenation
+    # Adding column with name 'duplicate' by concatenation
     data0['duplicate'] = data0['Scheme/Doc'] + data0['Citizen Name'] + data0['Mobile'] # Concatenation using scheme name for E-Gov data
     data0['parent_duplicate'] = data0['Parent Scheme'] + data0['Citizen Name'] + data0['Mobile'] # Concatenation using Parent scheme name for E-Gov data
     dfl['duplicate'] = dfl['Scheme/Doc'] + dfl['Citizen Name'] + dfl['Mobile'] # Concatenation using scheme name for DFL data
@@ -184,8 +184,8 @@ def eGov_DFL_dup(data0):
     parentDuplicateData.reset_index(inplace=True, drop = True)
 
     # Keeping uniques excluding duplicates
-    #df = data0.drop(index = data0[data0.duplicated(['duplicate'], keep='last')].index) # Keep unique data based on scheme name duplicate column for E-Gov
-    df = data0.drop(index = data0[data0.duplicated(['parent_duplicate'], keep='last')].index) # Keep unique data based on parent scheme name duplicate column for E-Gov
+    df = data0.drop(index = data0[data0.duplicated(['duplicate'], keep='last')].index) # Keep unique data based on scheme name duplicate column for E-Gov
+    #df = data0.drop(index = data0[data0.duplicated(['parent_duplicate'], keep='last')].index) # Keep unique data based on parent scheme name duplicate column for E-Gov
     df.reset_index(inplace=True, drop = True) # Resetting index to unique data
 
     """ try:
