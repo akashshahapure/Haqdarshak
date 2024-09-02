@@ -7,6 +7,5 @@ notify-py
 googletrans==4.0.0rc1
 xlsxwriter
 matplotlib
-io
 datetime
 warnings
