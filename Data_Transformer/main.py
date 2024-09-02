@@ -75,7 +75,6 @@ def transform_data():
         if project is not None:
             data0, init_file_size = rf.csvORexcel(project, project.name) # Reading uploaded file and storing as dataframe.
             data0, rejectedDF = rf.cleaner(data0)  # Cleaning the data.
-            st.session_state.rejectedDF = rejectedDF
             st.session_state.project_name = project.name
             st.session_state.init_file_size = init_file_size
         else:
@@ -92,6 +91,7 @@ def transform_data():
         if rateCard is not None:
             rate_card, fs = rf.csvORexcel(rateCard, rateCard.name) # Reading uploaded file and storing as dataframe.
             data0 = rf.hdPayment(data0, rate_card, PID) # Adding prices from rate card and calculate HD payment.
+            st.session_state.rejectedDF = rf.hdPayment(rejectedDF, rate_card, PID) # Adding prices from rate card and calculate HD payment.
             unique_data, duplicateData, parentDuplicateData, og_DF = rf.eGov_DFL_dup(data0)  # Separating DFL and E-Gov duplicate and unique data.
             st.session_state.unique_data = unique_data
             st.session_state.duplicateData = duplicateData
@@ -124,7 +124,7 @@ with cols[0]:
             projectwise_O_S_BR, districtWise_O_S_BR, Sch_O_S_BR, statusFig = rf.statusSummary(unique_data)
             Orgwise_Scheme_Diversity, schDivFig = rf.orgwiseSchDiv(unique_data)
             cit_sch_ratio, citSchRatioFig = rf.citSchRatio(unique_data) # Citizen scheme ratio report
-            top_bottom_hd = rf.hdAchv(unique_data) # HDwise achievement
+            top_bottom_hd = rf.hdAchv(unique_data, st.session_state.rejectedDF) # HDwise achievement
             Scheme_Categorisation = rf.schAchv(unique_data) # Schemewise achievement
             gen_Bif, genFig = rf.genderDist(unique_data) # Gender distribution
             repeat_mobile = rf.repeatMobile(unique_data) # Getting repeatative mobile numbers
@@ -143,6 +143,7 @@ with cols[0]:
                 projectwise_O_S_BR.to_excel(uwriter, sheet_name='projectwise_O_S_BR', index=False)
                 districtWise_O_S_BR.to_excel(uwriter, sheet_name='Districtwise achv', index=False)
                 Sch_O_S_BR.to_excel(uwriter, sheet_name='Schemewise achv', index=False)
+                repeat_mobile.to_excel(uwriter, sheet_name='Repeat Mobile', index=False)
                 Orgwise_Scheme_Diversity.to_excel(uwriter, sheet_name='Org_Sch_Diversity', index=False)
                 cit_sch_ratio.to_excel(uwriter, sheet_name='Cit_Sch_Ratio', index=False)
                 top_bottom_hd.to_excel(uwriter, sheet_name='HD Performance', index=False)
@@ -151,9 +152,9 @@ with cols[0]:
                 if st.session_state.duplicateData.shape[0] > 0:
                     st.session_state.duplicateData.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
                 if st.session_state.parentDuplicateData.shape[0] > 0:
-                    st.session_state.parentDuplicateData.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
+                    st.session_state.parentDuplicateData.to_excel(uwriter, sheet_name='Parent Duplicate Data', index=False)
                 if st.session_state.rejectedDF.shape[0] > 0:
-                    st.session_state.rejectedDF.to_excel(uwriter, sheet_name='Duplicate Data', index=False)
+                    st.session_state.rejectedDF.to_excel(uwriter, sheet_name='Rejected Data', index=False)
                 exe_end = dt.now() # Recording execution end time
                 uwriter.close()
 
@@ -173,7 +174,7 @@ with cols[1]:
             ogprojectwise_O_S_BR, ogdistrictWise_O_S_BR, ogSch_O_S_BR, ogStatusFig = rf.statusSummary(og_DF)
             ogOrgwise_Scheme_Diversity, ogOrgschDivFig = rf.orgwiseSchDiv(og_DF)
             ogcit_sch_ratio, ogCitSchRatioFig = rf.citSchRatio(og_DF) # Citizen scheme ratio report
-            ogtop_bottom_hd = rf.hdAchv(og_DF) # HDwise achievement
+            ogtop_bottom_hd = rf.hdAchv(og_DF, st.session_state.rejectedDF) # HDwise achievement
             ogScheme_Categorisation = rf.schAchv(og_DF) # Schemewise achievement
             ogGen_Bif, ogGenFig = rf.genderDist(og_DF) # Gender distribution
             ogrepeat_mobile = rf.repeatMobile(og_DF) # Getting repeatative mobile numbers            
@@ -192,6 +193,7 @@ with cols[1]:
                 ogprojectwise_O_S_BR.to_excel(awriter, sheet_name='projectwise_O_S_BR', index=False)
                 ogdistrictWise_O_S_BR.to_excel(awriter, sheet_name='Districtwise achv', index=False)
                 ogSch_O_S_BR.to_excel(awriter, sheet_name='Schemewise achv', index=False)
+                repeat_mobile.to_excel(awriter, sheet_name='Repeat Mobile', index=False)
                 ogOrgwise_Scheme_Diversity.to_excel(awriter, sheet_name='Org_Sch_Diversity', index=False)
                 ogcit_sch_ratio.to_excel(awriter, sheet_name='Cit_Sch_Ratio', index=False)
                 ogtop_bottom_hd.to_excel(awriter, sheet_name='HD Performance', index=False)
@@ -200,9 +202,9 @@ with cols[1]:
                 if st.session_state.duplicateData.shape[0] > 0:
                     st.session_state.duplicateData.to_excel(awriter, sheet_name='Duplicate Data', index=False)
                 if st.session_state.parentDuplicateData.shape[0] > 0:
-                    st.session_state.parentDuplicateData.to_excel(awriter, sheet_name='Duplicate Data', index=False)
+                    st.session_state.parentDuplicateData.to_excel(awriter, sheet_name='Parent Duplicate Data', index=False)
                 if st.session_state.rejectedDF.shape[0] > 0:
-                    st.session_state.rejectedDF.to_excel(awriter, sheet_name='Duplicate Data', index=False)
+                    st.session_state.rejectedDF.to_excel(awriter, sheet_name='Rejected Data', index=False)
                 exe_end = dt.now()
                 awriter.close()
             

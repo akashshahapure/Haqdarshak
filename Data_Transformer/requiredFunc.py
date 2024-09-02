@@ -83,7 +83,7 @@ def cleaner(df):
             continue
 
     # Deleting records with status "Case Aborted" and "Application rejected"
-    rejectedDF = data0[(data0.Status == 'Case Aborted') | (data0.Status == 'Application rejected')] # Storing prev step deleted data
+    rejectedDF = data0[(data0.Status == 'Case Aborted') | (data0.Status == 'Application rejected')] # Storing rejected data
     data0 = data0[(data0['Status'] != 'Case Aborted') & (data0['Status'] != 'Application rejected')]
 
     data0.reset_index(inplace=True, drop=True)
@@ -430,26 +430,29 @@ def citSchRatio(df):
     return cit_sch_ratio, fig
 
 # Defining a function to get achievement of HDs
-def hdAchv(df):
-    step = df.copy() # Copying data to another variable to make some changes.
-    step['HD ID'] = step['HD ID'].fillna('a') # Replacing missing values with simple character 'a'
-    step['HD ID'] = step['HD ID'].astype('str') # Changing HD ID column data type to string so that all values can be converted to lower case.
-    step['HD ID'] = step['HD ID'].apply(lambda x: x.lower()) # Changing values to lower case.
+def hdAchv(df, rejectedDF):
+    #step = df.copy() # Copying data to another variable to make some changes.
+    df['HD ID'] = df['HD ID'].fillna('a') # Replacing missing values with simple character 'a'
+    df['HD ID'] = df['HD ID'].astype('str') # Changing HD ID column data type to string so that all values can be converted to lower case.
+    df['HD ID'] = df['HD ID'].apply(lambda x: x.lower()) # Changing values to lower case.
     
-    step1 = pd.pivot_table(data = step, index = ['HD ID', 'HD Name','Scheme/Doc GUID'], values = 'Case Id', aggfunc = 'count') # Pivoting to get unique HD ID/ HD Name/ Scheme Name
+    step1 = pd.pivot_table(data = df, index = ['HD ID', 'HD Name','Scheme/Doc GUID'], values = 'Case Id', aggfunc = 'count') # Pivoting to get unique HD ID/ HD Name/ Scheme Name
     step1 = pd.DataFrame(step1.drop(columns='Case Id').reset_index()) # Delete unwanted column 'Case Id'
     step1 = pd.DataFrame(pd.pivot_table(data=step1, index=['HD ID','HD Name'], values='Scheme/Doc GUID', aggfunc='count').reset_index()).rename(columns={'Scheme/Doc GUID' : 'Total unique schemes'}) # Pivoting to get unique HD ID/ HD Name and unique count of schemes.
     
-    step2 = pd.DataFrame(step.groupby(by = 'HD ID')['Case Id'].count()).reset_index().rename(columns={'Case Id' : 'Total Applications'})
+    step2 = pd.DataFrame(df.groupby(by = 'HD ID')['Case Id'].count()).reset_index().rename(columns={'Case Id' : 'Total Applications'})
     
-    step3 = step.groupby('HD ID')['Benefit Value'].sum().reset_index()
+    step3 = df.groupby('HD ID')['Benefit Value'].sum().reset_index()
 
-    step4 = pd.pivot_table(data=step, index = ['HD ID'], values='HD_Payment', aggfunc='sum').reset_index().rename(columns = {'HD_Payment' : 'Total Payment'}) # Summing up HD payment
+    step4 = pd.pivot_table(data=df, index = ['HD ID'], values='HD_Payment', aggfunc='sum').reset_index().rename(columns = {'HD_Payment' : 'Total Payment'}) # Summing up HD payment
     
-    top_bottom_hd = step1.merge(step2, on = 'HD ID', how='left').merge(step3, on = 'HD ID', how='left').merge(step4, on = 'HD ID', how='left')
-    top_bottom_hd.rename(columns={'Benefit Value':'Benefit Value Delivered'}, inplace=True)
+    step5 = pd.pivot_table(rejectedDF, index=['HD ID'], values='HD_Payment', aggfunc='sum')
+    top_bottom_hd = step1.merge(step2, on = 'HD ID', how='left').merge(step3, on = 'HD ID', how='left').merge(step4, on = 'HD ID', how='left').merge(step5, on = 'HD ID', how='left')
+    top_bottom_hd.HD_Payment = top_bottom_hd.HD_Payment.fillna(0)
+    top_bottom_hd.rename(columns={'Benefit Value':'Benefit Value Delivered', 'HD_Payment' : 'Rejected Payment'}, inplace=True)
     top_bottom_hd.loc[len(top_bottom_hd)] = ['Grand Total', '', top_bottom_hd['Total unique schemes'].sum(),
-                                            top_bottom_hd['Total Applications'].sum(), top_bottom_hd['Benefit Value Delivered'].sum(), top_bottom_hd['Total Payment'].sum()]
+                                            top_bottom_hd['Total Applications'].sum(), top_bottom_hd['Benefit Value Delivered'].sum(),
+                                            top_bottom_hd['Total Payment'].sum(), top_bottom_hd['Rejected Payment'].sum()]
     
     return top_bottom_hd
 
@@ -550,10 +553,15 @@ def hdPayment(data0, rate_card, PID):
                     #print('for elif = {0} <= {1}'.format(data0.Createdon.loc[di],rate_sch.created_on.loc[i])) # For testing purpose
                     break
         else: # This will execute if filtered data has only single result.
-            price['open_price'].append(rate_sch.open_price.loc[rate_sch.index[0]]) # Storing open price from rate card to "price" dictionary.
-            price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[rate_sch.index[0]]) # Storing DS price from rate card to "price" dictionary.
-            price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[rate_sch.index[0]]) # Storing BR price from rate card to "price" dictionary.
-            #print('if-else') # For testing purpose
+            try:
+                price['open_price'].append(rate_sch.open_price.loc[rate_sch.index[0]]) # Storing open price from rate card to "price" dictionary.
+                price['Docket submitted price'].append(rate_sch['Docket submitted price'].loc[rate_sch.index[0]]) # Storing DS price from rate card to "price" dictionary.
+                price['scheme_document_received price'].append(rate_sch['scheme_document_received price'].loc[rate_sch.index[0]]) # Storing BR price from rate card to "price" dictionary.
+                #print('if-else')
+            except: # This will execute if Scheme not available in rate card under selected PID
+                price['open_price'].append(0) # Storing open price from rate card to "price" dictionary.
+                price['Docket submitted price'].append(0) # Storing DS price from rate card to "price" dictionary.
+                price['scheme_document_received price'].append(0) # Storing BR price from rate card to "price" dictionary
     
     price = pd.DataFrame(price) # Converting price dictionary to pandas dataframe.
     data0 = data0.merge(price.drop(columns=['Scheme/Doc GUID']), left_on=data0.index, right_on='index', how='left') # Merging "price" datafram with "cases report".
