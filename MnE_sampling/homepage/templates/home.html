@@ -1,0 +1,72 @@
+<html lang="en" style="height: auto; min-height: 100%;">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/static/main.css">
+        <title>Sampling Portal</title>
+    </head>
+    <body>
+        <header>
+            <span class="header-content">
+                <a href="/homepage/"><h1>Haqdarshak</h1></a>
+                <h2>Data Sampling Portal for M&E Team</h2>
+            </span>
+        </header>
+    
+        <main>
+            <div class="form-container">
+                <!-- Form now posts to Django backend at URL 'upload/' -->
+                <form id="data-sampling-form" action="/homepage/" method="POST" enctype="multipart/form-data" onsubmit="showMessageBox()">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="name">Enter Your Name:</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name here" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="email">Enter your Haqdarshak email ID:</label>
+                        <input type="email" id="email" name="email" placeholder="abc.def@haqdarshak.com" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="file-upload">Select the raw data file for sampling:</label>
+                        <input type="file" id="file-upload" name="file" accept=".csv,.xlsx,.xls" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="sample-percent">Provide the percent to sample the data (10-90):</label>
+                        <input type="number" id="sample-percent" name="percent" min="10" max="90" required>
+                    </div>
+    
+                    <div class="button-group">
+                        <button type="submit">Sample the Data</button>
+                        <button type="reset">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <div id="message-box" class="message-box">
+            Sampling the data. Please wait...
+        </div>
+    
+        <script>
+            function showMessageBox() {
+                // Show the message box
+                var messageBox = document.getElementById('message-box');
+                messageBox.style.display = 'flex';
+    
+                // Use a short timeout to wait for the file download to start, then hide the message box
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                    document.getElementById('data-sampling-form').reset();
+                }, 3000); // Adjust this duration as needed, depending on file processing time
+    
+                // Allow form submission to proceed normally
+                return true;
+            }
+        </script>
+
+    </body>
+</html>
