@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-! pip install -r requirements.txt
+!pip install -r requirements.txt
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
