@@ -15,7 +15,7 @@ def sampling_data(request):
         uname = request.POST.get('name')
         uemail = request.POST.get('email')
 
-        fs = FileSystemStorage()
+        fs = FileSystemStorage(location="\\upload\\", base_url="\\upload\\")
         file_Name = fs.save(file.name, file)
         path = os.path.join(fs.location, file_Name)
 
@@ -168,29 +168,48 @@ def sampling_data(request):
                 if duplicates.shape[0]>0:
                     duplicates.to_excel(writer, sheet_name='duplicates', index=False)
 
-        exe_start = dt.now()
-        data0 = csvORexcel(file_Name, path)
-        #print('Getting sample data of ',fn)
-        data0, duplicates = cleaner(data0)
-        samp, data0, remain, fr = sampling(data0, percent)
-        export_to_excel(samp, data0, remain, duplicates, path, fr)
-        exe_end = dt.now()
+        try:
+            exe_start = dt.now()
+            data0 = csvORexcel(file_Name, path)
+            #print('Getting sample data of ',fn)
+            data0, duplicates = cleaner(data0)
+            samp, data0, remain, fr = sampling(data0, percent)
+            export_to_excel(samp, data0, remain, duplicates, path, fr)
+            exe_end = dt.now()
 
-        # Logging the execution process.
-        log = pd.DataFrame({'Date':[dt.now().strftime("%d/%m/%Y")], 'u_name':[uname], 'u_email':[uemail], 'file_name':[file_Name], 'percent':int(percent*100), 'exec_start':[exe_start.strftime("%H:%M:%S")], 'exec_end':[exe_end.strftime("%H:%M:%S")], 'processing_time(s)':[(exe_end-exe_start).seconds]})
-        logs = pd.read_excel('upload/logs.xlsx')
-        logs = pd.concat([logs,log])
-        with pd.ExcelWriter('upload/logs.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-            logs.to_excel(writer, sheet_name='logs', index=False)
+            # Logging the execution process.
+            log = pd.DataFrame({'Date':[dt.now().strftime("%d/%m/%Y")], 'u_name':[uname], 'u_email':[uemail], 'file_name':[file_Name], 'percent':int(percent*100), 'exec_start':[exe_start.strftime("%H:%M:%S")], 'exec_end':[exe_end.strftime("%H:%M:%S")], 'processing_time(s)':[(exe_end-exe_start).seconds], 'status':['Success']})
+            logs = pd.read_excel('upload/logs.xlsx')
+            logs = pd.concat([logs,log])
+            with pd.ExcelWriter('upload/logs.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+                logs.to_excel(writer, sheet_name='logs', index=False)
 
-        with open(path, 'rb') as file:
+            with open(path, 'rb') as file:
                 response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{file_Name}"'
 
-        # Optionally delete the file after serving it
-        os.remove(path)
-            
-        return response
+            # Optionally delete the file after serving it
+            os.remove(path)
+
+            return response
+
+
+        except Exception as e:
+
+            response = HttpResponse("Please provide the correct format of the data", status=409)
+            exe_end = dt.now()
+
+            # Logging the execution process.
+            log = pd.DataFrame({'Date':[dt.now().strftime("%d/%m/%Y")], 'u_name':[uname], 'u_email':[uemail], 'file_name':[file_Name], 'percent':int(percent*100), 'exec_start':[exe_start.strftime("%H:%M:%S")], 'exec_end':[exe_end.strftime("%H:%M:%S")], 'processing_time(s)':[(exe_end-exe_start).seconds], 'status':['{0} : {1}'.format(type(e), e)]})
+            logs = pd.read_excel('upload/logs.xlsx')
+            logs = pd.concat([logs,log])
+            with pd.ExcelWriter('upload/logs.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+                logs.to_excel(writer, sheet_name='logs', index=False)
+
+            # Optionally delete the file after serving it
+            os.remove(path)  
+
+            return response
 
     return render(request, "home.html")
 

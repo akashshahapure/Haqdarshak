@@ -1,0 +1,8 @@
+virtualenv
+django
+pandas
+numpy
+datetime
+openpyxl
+xlsxwriter
+datetime
