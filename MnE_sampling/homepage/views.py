@@ -11,7 +11,7 @@ def sampling_data(request):
     if request.method == 'POST' and request.FILES['file']:
         
         file = request.FILES['file']
-        percent = round(int(request.POST.get('percent'))/100,1)
+        percent = round(int(request.POST.get('percent'))/100,2)
         uname = request.POST.get('name')
         uemail = request.POST.get('email')
 
@@ -149,7 +149,7 @@ def sampling_data(request):
             samp.reset_index(inplace=True, drop=True)
             samp['sampling'] = str(fr*100)+'%' # Adding a column to identify sampled records
             data0 = data0.merge(samp[['Case ID','sampling']], how='left', on='Case ID') # Merging sampled identified column with unique data
-            data0.sampling.fillna(value = str(100.0-(fr*100))+'%', inplace=True) # Filling missing values which have not identified
+            data0.sampling.fillna(value = str(100.0-(fr*100))+'%_2', inplace=True) # Filling missing values which have not identified
             remain=data0[data0.sampling == str(100.0-(fr*100))+'%'] # Filtering remaining data and storing with new variable.
             
             # Removing sampling column
@@ -162,8 +162,8 @@ def sampling_data(request):
         # Exporting data to excel.
         def export_to_excel(samp, data0, remain, duplicates, path, fr):
             with pd.ExcelWriter(path) as writer:
-                samp.to_excel(writer, sheet_name=str(fr*100)+'% sampling', index=False)
-                remain.to_excel(writer, sheet_name=str(100.0-(fr*100))+'% sampling', index=False)
+                samp.to_excel(writer, sheet_name=str(fr*100)+'% sampling_1', index=False)
+                remain.to_excel(writer, sheet_name=str(100.0-(fr*100))+'% sampling_2', index=False)
                 data0.to_excel(writer, sheet_name='unique data', index=False)
                 if duplicates.shape[0]>0:
                     duplicates.to_excel(writer, sheet_name='duplicates', index=False)
@@ -171,7 +171,6 @@ def sampling_data(request):
         try:
             exe_start = dt.now()
             data0 = csvORexcel(file_Name, path)
-            #print('Getting sample data of ',fn)
             data0, duplicates = cleaner(data0)
             samp, data0, remain, fr = sampling(data0, percent)
             export_to_excel(samp, data0, remain, duplicates, path, fr)
