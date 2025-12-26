@@ -10,8 +10,11 @@ except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
+with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\HQgeminiAPIKey.txt', 'r')as HQfile:
+        GOOGLE_API_KEY = HQfile.read()
+
 @st.cache_resource
-def googleORopenAI(key=None):
+def googleORopenAI(key=GOOGLE_API_KEY):
     from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings as google_embed
     from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -23,13 +26,18 @@ def googleORopenAI(key=None):
         embedding = OpenAIEmbeddings(model="text-embedding-ada-002", openai_api_key=key)
     return llm, embedding
 
-st.sidebar.header("API Key Configuration")
-with st.form("api_key_form"):
-    api_key = st.sidebar.text_input("Enter your API key", type="password")
-    st.form_submit_button("Submit")
+with st.sidebar:
+    st.header("API Key Configuration")
+    with st.form("api_key_form"):
+        api_key = st.text_input("Enter OpenAI or Google API key", type="password")
+        submitted = st.form_submit_button("Submit")
+        if submitted:
+            st.session_state.api_key = api_key
 
-if api_key:
-    llm, embedding = googleORopenAI(api_key)
+if "api_key" in st.session_state:
+    llm, embedding = googleORopenAI(st.session_state.api_key)
+else:
+    st.warning("Please enter OpenAI or Google API key.")
 
 # --- Page Config ---
 st.set_page_config(
