@@ -38,7 +38,7 @@ if "api_key" in st.session_state:
     llm, embedding = googleORopenAI(st.session_state.api_key)
 else:
     st.warning("Please enter OpenAI or Google API key.")
-    llm, embedding = googleORopenAI(st.session_state.api_key)
+    llm, embedding = googleORopenAI()
 
 # --- Page Config ---
 st.set_page_config(
@@ -49,7 +49,7 @@ st.set_page_config(
 
 # --- 1. Define your RAG Backend Wrapper ---
 @st.cache_resource
-def get_rag_response(usrQuery, embedding=embedding, llm=llm):
+def get_rag_response(usrQuery):
     from langchain_community.vectorstores import FAISS
     from langchain_core.runnables import RunnablePassthrough
     import faiss
