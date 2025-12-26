@@ -4,7 +4,6 @@ langchain_google_genai
 langchain_openai
 langchain_community
 faiss-cpu
-faiss
 PyMuPDFLoader
 tesseract
 ipython
