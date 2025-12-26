@@ -61,7 +61,9 @@ def get_rag_response(usrQuery):
     question: {question}
     context: {context}
     '''
-    faiss_vector_store = FAISS.load_local(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\FAISS', embedding, allow_dangerous_deserialization=True) # Load existing FAISS vector DB
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, 'FAISS')
+    faiss_vector_store = FAISS.load_local(file_path, embedding, allow_dangerous_deserialization=True) # Load existing FAISS vector DB
     retriever = faiss_vector_store.as_retriever(search_type='similarity', k=5) # Create retriever from FAISS vector DB
     rag_prompt_template = ChatPromptTemplate.from_template(rag_prompt) # Create prompt template
     setup_retrieval = RunnableParallel({'context' : retriever, 'question' : RunnablePassthrough()})
@@ -69,7 +71,7 @@ def get_rag_response(usrQuery):
         return "\n\n".join(doc.page_content for doc in docs)
 
     qa_rag_chain = setup_retrieval.assign(answer = (RunnablePassthrough.assign(context=lambda x: format_docs(x['context']))
-                                                    |rag_prompt_template
+                                                    | rag_prompt_template
                                                     | llm
                                                     | StrOutputParser())) # Create RAG chain
     response = qa_rag_chain.invoke(usrQuery) # Get response from RAG chain
