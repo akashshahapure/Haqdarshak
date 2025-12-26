@@ -48,7 +48,7 @@ st.set_page_config(
 
 # --- 1. Define your RAG Backend Wrapper ---
 @st.cache_resource
-def get_rag_response(usrQuery):
+def get_rag_response(usrQuery, embedding=embedding, llm=llm):
     from langchain_community.vectorstores import FAISS
     from langchain_core.runnables import RunnablePassthrough
     import faiss
