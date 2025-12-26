@@ -1,5 +1,6 @@
 streamlit
 google
+google-api-core
 langchain
 langchain_google_genai
 langchain_openai
