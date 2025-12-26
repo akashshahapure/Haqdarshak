@@ -38,6 +38,7 @@ if "api_key" in st.session_state:
     llm, embedding = googleORopenAI(st.session_state.api_key)
 else:
     st.warning("Please enter OpenAI or Google API key.")
+    llm, embedding = googleORopenAI(st.session_state.api_key)
 
 # --- Page Config ---
 st.set_page_config(
