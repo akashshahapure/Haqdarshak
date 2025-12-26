@@ -10,7 +10,7 @@ except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\HQgeminiAPIKey.txt', 'r')as HQfile:
+with open('./ref/HQgeminiAPIKey.txt', 'r')as HQfile:
         GOOGLE_API_KEY = HQfile.read()
 
 @st.cache_resource
