@@ -1,7 +1,7 @@
 import streamlit as st
 import asyncio
 import os
-from rag_functions import get_google_api_key
+import rag_functions
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # --- FIX: Create an event loop for the Streamlit thread ---
@@ -11,7 +11,7 @@ except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-GOOGLE_API_KEY = get_google_api_key()
+GOOGLE_API_KEY = rag_functions.get_google_api_key()
 
 @st.cache_resource
 def googleORopenAI(key=GOOGLE_API_KEY):

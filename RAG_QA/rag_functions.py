@@ -1,5 +1,5 @@
 print('Importing required libraries...')
-import warnings
+import warnings, os
 warnings.filterwarnings('ignore')
 from glob import glob
 from datetime import datetime as dt
@@ -35,6 +35,18 @@ def loadLLM():
     gemini = ChatGoogleGenerativeAI(model='gemini-2.5-flash', google_api_key=GOOGLE_API_KEY, rate_limiter=rate_limiter)
     embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGL_EMBED_API_KEY, rate_limiter=rate_limiter)
     return gemini, embedding
+
+def get_google_api_key():
+    # 1. Get the folder where THIS script (app.py) is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 2. Build the absolute path to the key file
+    file_path = os.path.join(script_dir, 'ref', 'HQgeminiAPIKey.txt')
+
+    with open(file_path, 'r')as HQfile:
+            GOOGLE_API_KEY = HQfile.read()
+
+    return GOOGLE_API_KEY
 
 # Reading PDF files from the folder './PDF/'
 def read_pdfs(file_path):
