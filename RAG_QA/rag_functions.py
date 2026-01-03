@@ -24,8 +24,8 @@ def loadLLM():
     
     load_dotenv()
 
-    GOOGLE_API_KEY = os.environ.get(GOOGLE_API_KEY)
-    GOOGLE_EMBED_API_KEY = os.environ.get(GOOGLE_EMBED_API_KEY)
+    GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+    GOOGLE_EMBED_API_KEY = os.environ.get("GOOGLE_EMBED_API_KEY")
     
     rate_limiter = InMemoryRateLimiter(requests_per_second=0.1,
                                        check_every_n_seconds=0.1,  # How often the limiter checks if a request is allowed
@@ -35,9 +35,11 @@ def loadLLM():
     return gemini, embedding
 
 def get_google_api_key():
-    GOOGLE_API_KEY = load_dotenv().get("GOOGLE_API_KEY")
+    load_dotenv()
+    GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+    GOOGLE_EMBED_API_KEY = os.environ.get("GOOGLE_EMBED_API_KEY")
 
-    return GOOGLE_API_KEY
+    return GOOGLE_API_KEY, GOOGLE_EMBED_API_KEY
 
 # Reading PDF files from the folder './PDF/'
 def read_pdfs(file_path):

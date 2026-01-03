@@ -11,7 +11,7 @@ except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-GOOGLE_API_KEY = rag_functions.get_google_api_key()
+GOOGLE_API_KEY, GOOGLE_EMBED_API_KEY = rag_functions.get_google_api_key()
 
 @st.cache_resource
 def googleORopenAI(key=GOOGLE_API_KEY):
