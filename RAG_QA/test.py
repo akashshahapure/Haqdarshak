@@ -1,15 +1,15 @@
-import streamlit as st
+import streamlit as st, os
 @st.cache_resource
 def loadLLMfromText():
     from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings as google_embed
-    with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\HQgeminiAPIKey.txt', 'r')as HQfile:
-        GOOGLE_API_KEY = HQfile.read()
+    from dotenv import load_dotenv
+    load_dotenv()
 
-    with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\geminiAPIKey.txt', 'r')as file:
-        GOOGL_EMBED_API_KEY = file.read()
+    GOOGLE_API_KEY = os.environ.get(GOOGLE_API_KEY)
+    GOOGLE_EMBED_API_KEY = os.environ.get(GOOGLE_EMBED_API_KEY)
     
     gemini = ChatGoogleGenerativeAI(model='gemini-2.5-flash', google_api_key=GOOGLE_API_KEY)
-    embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGL_EMBED_API_KEY)
+    embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGLE_EMBED_API_KEY)
     return gemini, embedding
 
 gemini, embedding = loadLLMfromText()

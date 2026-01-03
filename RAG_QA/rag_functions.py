@@ -6,7 +6,6 @@ from datetime import datetime as dt
 import time
 import faiss
 from langchain_core.rate_limiters import InMemoryRateLimiter
-
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders.parsers import TesseractBlobParser
@@ -17,34 +16,26 @@ from langchain_core.runnables import RunnablePassthrough
 from google.api_core.exceptions import ResourceExhausted
 from IPython.display import display, Markdown
 from dotenv import load_dotenv
-load_dotenv()
 print('Required libraries imported!')
 
 def loadLLM():
     from langchain_core.rate_limiters import InMemoryRateLimiter
     from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings as google_embed
-    with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\HQgeminiAPIKey.txt', 'r')as HQfile:
-        GOOGLE_API_KEY = HQfile.read()
+    
+    load_dotenv()
 
-    with open(r'C:\Users\akash\Documents\Haqdarshak\Work\RAG_QA\ref\geminiAPIKey.txt', 'r')as file:
-        GOOGL_EMBED_API_KEY = file.read()
+    GOOGLE_API_KEY = os.environ.get(GOOGLE_API_KEY)
+    GOOGLE_EMBED_API_KEY = os.environ.get(GOOGLE_EMBED_API_KEY)
     
     rate_limiter = InMemoryRateLimiter(requests_per_second=0.1,
                                        check_every_n_seconds=0.1,  # How often the limiter checks if a request is allowed
                                        max_bucket_size=10,)         # Maximum burst size
     gemini = ChatGoogleGenerativeAI(model='gemini-2.5-flash', google_api_key=GOOGLE_API_KEY, rate_limiter=rate_limiter)
-    embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGL_EMBED_API_KEY, rate_limiter=rate_limiter)
+    embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGLE_EMBED_API_KEY, rate_limiter=rate_limiter)
     return gemini, embedding
 
 def get_google_api_key():
-    # 1. Get the folder where THIS script (app.py) is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # 2. Build the absolute path to the key file
-    file_path = os.path.join(script_dir, 'ref', 'HQgeminiAPIKey.txt')
-
-    with open(file_path, 'r')as HQfile:
-            GOOGLE_API_KEY = HQfile.read()
+    GOOGLE_API_KEY = load_dotenv().get("GOOGLE_API_KEY")
 
     return GOOGLE_API_KEY
 
