@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from custom_functions.init_chromaDB import init_chromaDB
 from langchain_core.runnables import RunnablePassthrough
 from dotenv import load_dotenv
-import os
+import os, streamlit as st
 
 # Loading Google API key from environment
 load_dotenv()
@@ -33,15 +33,15 @@ Context: {context}
 Answer:
 '''
 
-# Initializing ChromaDB
-chroma_db = init_chromaDB()
-
 # Formatting the response
 def format_res(res):
     return "\n\n".join(content.page_content for content in res)
 
 # Symantic Retrieval, chat prompt template and chat RAG chain
 def retriever_chat_rag_chain(k=5, query="Haqarshak Empowerment Solutions Pvt. Ltd.", chat_prompt=prompt):
+    # Initializing ChromaDB
+    chroma_db = init_chromaDB()
+    
     # Symantic Retrieval
     symantic_retriever = chroma_db.as_retriever(search_type='similarity', search_kwargs={'k':k})
 
@@ -70,4 +70,4 @@ def get_response(usrQuery):
                     ks += 3
                     chat_response, ks = retriever_chat_rag_chain(k=ks, query=usrQuery)
 
-    return chat_response
+    return chat_response.content

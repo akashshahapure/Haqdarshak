@@ -36,22 +36,16 @@ if st.session_state.messages:
             st.markdown(message['content'])
 
 # Getting input from the user.
-user_query = st.chat_input("Type your query here and I'll try to answer from the HR policies.")
-
-# Adding and printing user input to the chat history
-if user_query:
+if user_query:= st.chat_input("Type your query here and I'll try to answer from the HR policies."):
+    # Adding and printing user input to the chat history
     st.session_state.messages.append({"role":"user", "content":user_query})
-    # Printing user input
     with st.chat_message('user'):
         st.markdown(user_query)
 
-# Initializing ChromaDB
-chroma_db = init_chromaDB()
+    # Getting response from the Gemini model
+    response = get_response(usrQuery=user_query)
 
-# Getting response from the Gemini model
-response = get_response(usrQuery=user_query)
-
-# Adding & printing response to the chat history
-st.session_state.messages.append({'role':'assistant', 'content':response})
-with st.chat_message('assistant'):
-    st.markdown(response)
+    # Adding & printing response to the chat history
+    st.session_state.messages.append({'role':'assistant', 'content':response})
+    with st.chat_message('assistant'):
+        st.markdown(response)
