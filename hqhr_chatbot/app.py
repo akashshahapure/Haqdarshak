@@ -1,5 +1,4 @@
 import asyncio, os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # --- FIX: Create an event loop for the Streamlit thread ---
 try:
@@ -17,13 +16,20 @@ from custom_functions.get_response import get_response
 st.set_page_config(
     page_title="HQ HR",
     page_icon="https://framerusercontent.com/images/gVBdWe1mOwPpV6Z7x9I2kLuIWs.jpg",
-    layout="wide",
+    layout="centered",
 )
-st.logo("C:\\Users\\akash\\Documents\\Haqdarshak\\Work\\hqhr_chatbot\\images\\haqdarshak_logo.jpg")
+
+# Initializing ChromaDB
+chromaDB = init_chromaDB()
+
+# Adding logo to the sidebar
+project_path = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(project_path,'images','haqdarshak_logo.jpg')
+st.logo(logo_path, size='large')
 
 # Setting Title of the page
 st.title("Haqdarshak HR Assistant")
-st.subheader("Hello! I'm Harshil, your HR assistant for Haqdarshak company. I can answer your queries about HR policies. What can I help you with today?")
+st.markdown("Hello! I'm Harshil, your HR assistant for Haqdarshak company. I can answer your queries about HR policies. What can I help you with today?")
 
 # Initializing session state for messages
 if 'messages' not in st.session_state:
@@ -43,7 +49,8 @@ if user_query:= st.chat_input("Type your query here and I'll try to answer from 
         st.markdown(user_query)
 
     # Getting response from the Gemini model
-    response = get_response(usrQuery=user_query)
+    with st.spinner('Generating response...'):
+        response = get_response(usrQuery=user_query, db=chromaDB)
 
     # Adding & printing response to the chat history
     st.session_state.messages.append({'role':'assistant', 'content':response})

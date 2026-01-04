@@ -11,9 +11,13 @@ def init_chromaDB():
     # Initializing Google embedding model
     embedding = google_embed(model = 'models/gemini-embedding-001', google_api_key=GOOGLE_EMBED_API_KEY)
 
+    # Getting the path to chromaDB folder
+    project_path = os.path.dirname(os.path.abspath(__file__))
+    chromaDB_path = os.path.join(project_path,'ChromaDB')
+    
     # Initializing ChromaDB
     chroma_db = Chroma(collection_name="HQHR",
                        embedding_function=embedding,
-                       persist_directory="C:\\Users\\akash\\Documents\\Haqdarshak\\Work\\hqhr_chatbot\\ChromaDB"
+                       persist_directory=chromaDB_path
                        )
     return chroma_db

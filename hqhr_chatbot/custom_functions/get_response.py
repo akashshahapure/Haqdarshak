@@ -11,6 +11,9 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 gemini = ChatGoogleGenerativeAI(model='gemini-2.5-flash', google_api_key=GOOGLE_API_KEY)
 
+# Initializing ChromaDB
+#chromaDB = init_chromaDB()
+
 prompt='''
 You are Harshil, an HR assistant for Haqdarshak company. Your sole purpose is to answer employee queries using **only** the provided context.
 
@@ -38,10 +41,11 @@ def format_res(res):
     return "\n\n".join(content.page_content for content in res)
 
 # Symantic Retrieval, chat prompt template and chat RAG chain
-def retriever_chat_rag_chain(k=5, query="Haqarshak Empowerment Solutions Pvt. Ltd.", chat_prompt=prompt):
-    # Initializing ChromaDB
-    chroma_db = init_chromaDB()
-    
+def retriever_chat_rag_chain(k=5, query="Hello", chat_prompt=prompt, chroma_db=None):
+    # If chroma DB not provided then it will get initialized
+    if chroma_db is None:
+         chroma_db = init_chromaDB()
+
     # Symantic Retrieval
     symantic_retriever = chroma_db.as_retriever(search_type='similarity', search_kwargs={'k':k})
 
@@ -58,16 +62,18 @@ def retriever_chat_rag_chain(k=5, query="Haqarshak Empowerment Solutions Pvt. Lt
     return response, k
 
 # Get the response from the RAG chain
-def get_response(usrQuery):
+def get_response(usrQuery, db):
     # Initializing RAG chain
-    chat_response, ks = retriever_chat_rag_chain(query=usrQuery)
+    chat_response, ks = retriever_chat_rag_chain(query=usrQuery, chroma_db=db)
+    response_text = chat_response.content.strip()
 
     # Handling insufficient knowledge
-    while chat_response == 'I cannot answer this from the current knowledge base.':
-                if ks > 20:
+    while "I cannot answer" in response_text:
+                if ks > 30:
                     break
                 else:
-                    ks += 3
-                    chat_response, ks = retriever_chat_rag_chain(k=ks, query=usrQuery)
+                    ks += 5
+                    chat_response, ks = retriever_chat_rag_chain(k=ks, query=usrQuery, chroma_db=db)
+                    response_text = chat_response.content.strip()
 
-    return chat_response.content
+    return response_text
