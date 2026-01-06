@@ -41,7 +41,7 @@ def format_res(res):
     return "\n\n".join(content.page_content for content in res)
 
 # Symantic Retrieval, chat prompt template and chat RAG chain
-def retriever_chat_rag_chain(k=5, query="Hello", chat_prompt=prompt, chroma_db=None):
+def retriever_chat_rag_chain(k=5, query="Haqdarshak Empowerment Solutions Pvt. Ltd.", chat_prompt=prompt, chroma_db=None):
     # If chroma DB not provided then it will get initialized
     if chroma_db is None:
          chroma_db = init_chromaDB()
