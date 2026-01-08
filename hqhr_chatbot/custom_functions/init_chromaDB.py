@@ -20,4 +20,5 @@ def init_chromaDB():
                        embedding_function=embedding,
                        persist_directory=chromaDB_path
                        )
+    print(f'ChromaDb path = {chromaDB_path}')
     return chroma_db
